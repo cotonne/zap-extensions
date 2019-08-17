@@ -67,7 +67,7 @@ public class ViewStateDecoder {
      * decodes a Base64 encoded byte array into a human readable String, interpreting the Base64
      * decoded data as a tree of ViewState objects.
      *
-     * @param base64encoded a byte array containing Base64 encoded ViewState data. Should not
+     * @param decodeddata a byte array containing ViewState data. Should not
      *     contain superfluous characters at the end, as this breaks the "MAC" detection
      * @return a human readable, XML based representation of the ViewState data
      * @throws Exception
