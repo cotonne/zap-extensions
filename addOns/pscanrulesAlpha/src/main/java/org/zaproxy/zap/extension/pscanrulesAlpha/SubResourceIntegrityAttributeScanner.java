@@ -19,6 +19,11 @@
  */
 package org.zaproxy.zap.extension.pscanrulesAlpha;
 
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -29,12 +34,6 @@ import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.network.HttpMessage;
 import org.zaproxy.zap.extension.pscan.PassiveScanThread;
 import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
-
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /** Detect missing attribute integrity in supported elements */
 public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
@@ -92,11 +91,16 @@ public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
     @Override
     public void scanHttpResponseReceive(HttpMessage msg, int id, Source source) {
         trustedDomains.update(getConfig().getString(TrustedDomains.TRUSTED_DOMAINS_PROPERTY, ""));
+        // Would be nice to add origin as a trusted domain
+        // However, seems complicated with the regex
+        // Main problem is "ressources are trusted by regex / trusted domains" and "ressource are
+        // trusted by SOP / origin"
+        trustedDomains.add(format(msg.getRequestHeader().getURI()));
 
         List<Element> sourceElements = source.getAllElements();
         sourceElements.stream()
                 .filter(element -> SupportedElements.contains(element.getName()))
-                .filter(isNotTrusted(msg.getRequestHeader().getURI(), trustedDomains))
+                .filter(isNotTrusted(trustedDomains))
                 .forEach(
                         element -> {
                             Alert alert =
@@ -122,21 +126,27 @@ public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
                         });
     }
 
-    private static Predicate<Element> isNotTrusted(URI origin, TrustedDomains trustedDomains) {
+    public String format(URI originUri) {
+        try {
+            return originUri.getScheme()
+                    + "://"
+                    + originUri.getAuthority()
+                    + ":"
+                    + originUri.getPort()
+                    + "/.*";
+        } catch (URIException e) {
+            return "";
+        }
+    }
+
+    private static Predicate<Element> isNotTrusted(TrustedDomains trustedDomains) {
         return element -> {
             Optional<URI> maybeRessourceUri = SupportedElements.getHost(element);
             return element.getAttributeValue("integrity") == null
-                    && !maybeRessourceUri.map(ressourceUri -> matches(ressourceUri, origin) || trustedDomains.isIncluded(ressourceUri.toString())).orElse(false);
+                    && !maybeRessourceUri
+                            .map(ressourceUri -> trustedDomains.isIncluded(ressourceUri.toString()))
+                            .orElse(false);
         };
-    }
-
-    private static boolean matches(URI uri, org.apache.commons.httpclient.URI origin) {
-        try {
-            return uri.getHost().equals(origin.getHost())
-                    && uri.getScheme().equals(origin.getScheme());
-        } catch (URIException e) {
-            return false;
-        }
     }
 
     @Override

@@ -120,8 +120,7 @@ public class SubResourceIntegrityAttributeScannerTest
                                 + "<script src=\"https://some.cdn.com/v1.0/include.js\"></script>"
                                 + "</head><body></body></html>");
         rule.getConfig()
-                .setProperty(
-                        TrustedDomains.TRUSTED_DOMAINS_PROPERTY, "https://some.cdn.com/.*");
+                .setProperty(TrustedDomains.TRUSTED_DOMAINS_PROPERTY, "https://some.cdn.com/.*");
 
         // When
         rule.scanHttpResponseReceive(msg, -1, createSource(msg));
@@ -130,6 +129,7 @@ public class SubResourceIntegrityAttributeScannerTest
         assertThat(alertsRaised, hasSize(0));
     }
 
+    // TODO doesn't work due to definition of trusted domain
     @Test
     public void shouldNotRaiseAlertGivenElementIsServedByCurrentDomain()
             throws HttpMalformedHeaderException {
@@ -162,8 +162,28 @@ public class SubResourceIntegrityAttributeScannerTest
         rule.scanHttpResponseReceive(msg, -1, createSource(msg));
 
         // Then
-        assertThat(alertsRaised.get(0).getEvidence(),
+        assertThat(
+                alertsRaised.get(0).getEvidence(),
                 equalTo("<script src=\"https://example.com/v1.0/include.js\"></script>"));
+    }
+
+    @Test
+    public void shouldRaiseAnAlertGivenPortIsDifferentFromOrigin()
+            throws HttpMalformedHeaderException {
+        // Given
+        HttpMessage msg =
+                buildMessage(
+                        "<html><head>"
+                                + "<script src=\"http://example.com:3310/v1.0/include.js\"></script>"
+                                + "</head><body></body></html>");
+
+        // When
+        rule.scanHttpResponseReceive(msg, -1, createSource(msg));
+
+        // Then
+        assertThat(
+                alertsRaised.get(0).getEvidence(),
+                equalTo("<script src=\"http://example.com:3310/v1.0/include.js\"></script>"));
     }
 
     @Test
