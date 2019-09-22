@@ -19,14 +19,11 @@
  */
 package org.zaproxy.zap.extension.pscanrulesAlpha;
 
-import java.util.ArrayList;
-import java.util.List;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
-import org.apache.log4j.Logger;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.core.scanner.Plugin;
@@ -37,11 +34,10 @@ import org.zaproxy.zap.extension.pscan.PassiveScanThread;
 import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
 import org.zaproxy.zap.model.Context;
 
+import java.util.List;
+
 public class LinkTargetScanner extends PluginPassiveScanner {
 
-    // TODO Replace "rules.domains.trusted" with RuleConfigParam.RULE_DOMAINS_TRUSTED once
-    // available.
-    public static final String TRUSTED_DOMAINS_PROPERTY = "rules.domains.trusted";
     private static final String MESSAGE_PREFIX = "pscanalpha.linktarget.";
 
     private static final String REL_ATTRIBUTE = "rel";
@@ -49,14 +45,10 @@ public class LinkTargetScanner extends PluginPassiveScanner {
     private static final String _BLANK = "_blank";
     private static final String NOOPENER = "noopener";
     private static final String NOREFERRER = "noreferrer";
-
-    private String trustedConfig = "";
-    private List<String> trustedDomainRegexes = new ArrayList<String>();
+    private final TrustedDomains trustedDomains = new TrustedDomains();
 
     private PassiveScanThread parent = null;
     private Model model = null;
-
-    private static final Logger LOG = Logger.getLogger(PluginPassiveScanner.class);
 
     @Override
     public void setParent(PassiveScanThread parent) {
@@ -113,34 +105,7 @@ public class LinkTargetScanner extends PluginPassiveScanner {
         } catch (URIException e) {
             // Ignore
         }
-        if (otherDomain) {
-            // check the trusted domains
-            for (String regex : this.trustedDomainRegexes) {
-                try {
-                    if (link.matches(regex)) {
-                        return false;
-                    }
-                } catch (Exception e) {
-                    LOG.warn("Invalid regex in rule " + TRUSTED_DOMAINS_PROPERTY + ": " + regex, e);
-                }
-            }
-        }
-        return otherDomain;
-    }
-
-    private void checkIgnoreList() {
-        String trustedConf = getConfig().getString(TRUSTED_DOMAINS_PROPERTY, "");
-        if (!trustedConf.equals(this.trustedConfig)) {
-            // Its changed
-            trustedDomainRegexes.clear();
-            this.trustedConfig = trustedConf;
-            for (String regex : trustedConf.split(",")) {
-                String regexTrim = regex.trim();
-                if (regexTrim.length() > 0) {
-                    trustedDomainRegexes.add(regexTrim);
-                }
-            }
-        }
+        return otherDomain && trustedDomains.check(link);
     }
 
     private boolean checkElement(Element link, HttpMessage msg, int id) {
@@ -190,7 +155,7 @@ public class LinkTargetScanner extends PluginPassiveScanner {
             return;
         }
         // Check to see if the configs have changed
-        checkIgnoreList();
+        trustedDomains.checkIgnoreList(getConfig().getString(TrustedDomains.TRUSTED_DOMAINS_PROPERTY, ""));
 
         String host = msg.getRequestHeader().getHostName();
         List<Context> contextList =
