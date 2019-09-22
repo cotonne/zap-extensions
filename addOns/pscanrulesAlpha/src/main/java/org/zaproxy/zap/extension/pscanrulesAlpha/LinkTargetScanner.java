@@ -105,7 +105,7 @@ public class LinkTargetScanner extends PluginPassiveScanner {
         } catch (URIException e) {
             // Ignore
         }
-        return otherDomain && trustedDomains.check(link);
+        return otherDomain && !trustedDomains.isIncluded(link);
     }
 
     private boolean checkElement(Element link, HttpMessage msg, int id) {
