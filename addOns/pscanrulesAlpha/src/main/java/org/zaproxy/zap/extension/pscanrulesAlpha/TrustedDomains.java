@@ -52,13 +52,17 @@ public class TrustedDomains {
         trustedDomainRegexesPatterns.clear();
         this.trustedConfig = trustedConf;
         for (String regex : trustedConf.split(",")) {
-            String regexTrim = regex.trim();
-            if (!regexTrim.isEmpty()) {
-                try {
-                    trustedDomainRegexesPatterns.add(Pattern.compile(regexTrim));
-                } catch (Exception e) {
-                    LOG.warn("Invalid regex in rule " + TRUSTED_DOMAINS_PROPERTY + ": " + regex, e);
-                }
+            add(regex);
+        }
+    }
+
+    void add(String regex) {
+        String regexTrim = regex.trim();
+        if (!regexTrim.isEmpty()) {
+            try {
+                trustedDomainRegexesPatterns.add(Pattern.compile(regexTrim));
+            } catch (Exception e) {
+                LOG.warn("Invalid regex in rule " + TRUSTED_DOMAINS_PROPERTY + ": " + regex, e);
             }
         }
     }

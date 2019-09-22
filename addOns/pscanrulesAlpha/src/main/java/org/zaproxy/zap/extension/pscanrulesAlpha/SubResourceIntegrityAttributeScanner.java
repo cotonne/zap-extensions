@@ -64,18 +64,17 @@ public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
             return Stream.of(values()).anyMatch(e -> tag.equals(e.tag));
         }
 
-        public static Optional<String> getHost(Element element) {
+        public static Optional<URI> getHost(Element element) {
             String url =
                     element.getAttributeValue(
                             SupportedElements.valueOf(element.getName().toUpperCase(Locale.ROOT))
                                     .attribute);
             URI uri;
             try {
-                uri = new URI(url);
+                return Optional.of(new URI(url));
             } catch (URISyntaxException e) {
                 return Optional.empty();
             }
-            return Optional.of(uri.getHost());
         }
     }
 
@@ -83,6 +82,7 @@ public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
     private static final String MESSAGE_PREFIX = "pscanalpha.sri-integrity.";
 
     private PassiveScanThread parent;
+    private final TrustedDomains trustedDomains = new TrustedDomains();
 
     @Override
     public void scanHttpRequestSend(HttpMessage msg, int id) {
@@ -91,11 +91,12 @@ public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
 
     @Override
     public void scanHttpResponseReceive(HttpMessage msg, int id, Source source) {
+        trustedDomains.update(getConfig().getString(TrustedDomains.TRUSTED_DOMAINS_PROPERTY, ""));
 
         List<Element> sourceElements = source.getAllElements();
         sourceElements.stream()
                 .filter(element -> SupportedElements.contains(element.getName()))
-                .filter(unsafeSubResource(msg.getRequestHeader().getHostName()))
+                .filter(isNotTrusted(msg.getRequestHeader().getHostName(), trustedDomains))
                 .forEach(
                         element -> {
                             Alert alert =
@@ -121,11 +122,11 @@ public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
                         });
     }
 
-    private static Predicate<Element> unsafeSubResource(String origin) {
+    private static Predicate<Element> isNotTrusted(String origin, TrustedDomains trustedDomains) {
         return element -> {
-            Optional<String> maybeHostname = SupportedElements.getHost(element);
+            Optional<URI> maybeHostname = SupportedElements.getHost(element);
             return element.getAttributeValue("integrity") == null
-                    && !maybeHostname.map(hostname -> hostname.matches(origin)).orElse(false);
+                    && !maybeHostname.map(hostname -> hostname.getHost().matches(origin) || trustedDomains.isIncluded(hostname.toString())).orElse(false);
         };
     }
 

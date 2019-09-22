@@ -108,7 +108,7 @@ public class LinkTargetScanner extends PluginPassiveScanner {
         return otherDomain && !trustedDomains.isIncluded(link);
     }
 
-    private boolean checkElement(Element link, HttpMessage msg, int id) {
+    private boolean checkElement(Element link) {
         // get target, check if its _blank
         String target = link.getAttributeValue(TARGET_ATTRIBUTE);
         if (target == null) {
@@ -123,10 +123,8 @@ public class LinkTargetScanner extends PluginPassiveScanner {
         String relAtt = link.getAttributeValue(REL_ATTRIBUTE);
         if (relAtt != null) {
             relAtt = relAtt.toLowerCase();
-            if (relAtt.contains(NOOPENER) && relAtt.contains(NOREFERRER)) {
-                // Its ok
-                return false;
-            }
+            // Its ok
+            return !relAtt.contains(NOOPENER) || !relAtt.contains(NOREFERRER);
         }
         return true;
     }
@@ -171,7 +169,7 @@ public class LinkTargetScanner extends PluginPassiveScanner {
         // TODO Replace it with filter/findFirst?
         for (Element link : elements) {
             if (isLinkFromOtherDomain(host, link.getAttributeValue("href"), contextList)
-                    && checkElement(link, msg, id)) {
+                    && checkElement(link)) {
                 raiseAlert(link, msg, id);
                 return;
             }

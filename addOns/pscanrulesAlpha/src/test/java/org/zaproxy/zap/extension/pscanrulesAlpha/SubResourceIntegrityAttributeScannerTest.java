@@ -20,6 +20,7 @@
 package org.zaproxy.zap.extension.pscanrulesAlpha;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
@@ -107,6 +108,26 @@ public class SubResourceIntegrityAttributeScannerTest
         assertThat(
                 alertsRaised.get(0).getEvidence(),
                 equalTo("<script src=\"https://some.cdn.com/v1.0/include.js\"></script>"));
+    }
+
+    @Test
+    public void shouldNotIndicateElementGivenElementIsServedByTrustedDomains()
+            throws HttpMalformedHeaderException {
+        // Given
+        HttpMessage msg =
+                buildMessage(
+                        "<html><head>"
+                                + "<script src=\"https://some.cdn.com/v1.0/include.js\"></script>"
+                                + "</head><body></body></html>");
+        rule.getConfig()
+                .setProperty(
+                        TrustedDomains.TRUSTED_DOMAINS_PROPERTY, "https://some.cdn.com/.*");
+
+        // When
+        rule.scanHttpResponseReceive(msg, -1, createSource(msg));
+
+        // Then
+        assertThat(alertsRaised, hasSize(0));
     }
 
     @Test
