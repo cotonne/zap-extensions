@@ -1,7 +1,6 @@
 package org.zaproxy.zap.extension.pscanrulesAlpha;
 
 import org.apache.log4j.Logger;
-import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,11 +11,8 @@ public class TrustedDomains {
     // TODO Replace "rules.domains.trusted" with RuleConfigParam.RULE_DOMAINS_TRUSTED once
     // available.
     public static final String TRUSTED_DOMAINS_PROPERTY = "rules.domains.trusted";
-    String trustedConfig = "";
-    List<String> trustedDomainRegexes = new ArrayList<String>();
-
-    public TrustedDomains() {
-    }
+    private String hashTrustedConfig = "";
+    private List<String> trustedDomainRegexes = new ArrayList<>();
 
     public boolean check(String link) {
         // check the trusted domains
@@ -33,10 +29,11 @@ public class TrustedDomains {
     }
 
     void checkIgnoreList(String trustedConf) {
-        if (!trustedConf.equals(this.trustedConfig)) {
+        // TODO use hashCode?
+        if (!trustedConf.equals(this.hashTrustedConfig)) {
             // Its changed
             trustedDomainRegexes.clear();
-            this.trustedConfig = trustedConf;
+            this.hashTrustedConfig = trustedConf;
             for (String regex : trustedConf.split(",")) {
                 String regexTrim = regex.trim();
                 if (regexTrim.length() > 0) {
