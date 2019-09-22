@@ -19,6 +19,8 @@
  */
 package org.zaproxy.zap.extension.pscanrulesAlpha;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.htmlparser.jericho.Element;
 import net.htmlparser.jericho.HTMLElementName;
 import net.htmlparser.jericho.Source;
@@ -33,9 +35,6 @@ import org.parosproxy.paros.network.HttpMessage;
 import org.zaproxy.zap.extension.pscan.PassiveScanThread;
 import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
 import org.zaproxy.zap.model.Context;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LinkTargetScanner extends PluginPassiveScanner {
 
