@@ -34,6 +34,7 @@ import org.zaproxy.zap.extension.pscan.PassiveScanThread;
 import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
 import org.zaproxy.zap.model.Context;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class LinkTargetScanner extends PluginPassiveScanner {
@@ -111,41 +112,44 @@ public class LinkTargetScanner extends PluginPassiveScanner {
     private boolean checkElement(Element link, HttpMessage msg, int id) {
         // get target, check if its _blank
         String target = link.getAttributeValue(TARGET_ATTRIBUTE);
-        if (target != null) {
-            if (AlertThreshold.HIGH.equals(this.getAlertThreshold())
-                    && !_BLANK.equalsIgnoreCase(target)) {
-                // Only report _blank link targets at a high threshold
+        if (target == null) {
+            return false;
+        }
+        if (AlertThreshold.HIGH.equals(this.getAlertThreshold())
+                && !_BLANK.equalsIgnoreCase(target)) {
+            // Only report _blank link targets at a high threshold
+            return false;
+        }
+        // Not looking good,
+        String relAtt = link.getAttributeValue(REL_ATTRIBUTE);
+        if (relAtt != null) {
+            relAtt = relAtt.toLowerCase();
+            if (relAtt.contains(NOOPENER) && relAtt.contains(NOREFERRER)) {
+                // Its ok
                 return false;
             }
-            // Not looking good,
-            String relAtt = link.getAttributeValue(REL_ATTRIBUTE);
-            if (relAtt != null) {
-                relAtt = relAtt.toLowerCase();
-                if (relAtt.contains(NOOPENER) && relAtt.contains(NOREFERRER)) {
-                    // Its ok
-                    return false;
-                }
-            }
-            // Its bad
-            Alert alert =
-                    new Alert(getPluginId(), Alert.RISK_MEDIUM, Alert.CONFIDENCE_MEDIUM, getName());
-            alert.setDetail(
-                    getDescription(),
-                    msg.getRequestHeader().getURI().toString(),
-                    "", // Param
-                    "", // Attack
-                    "", // Other info
-                    getSolution(),
-                    getReference(),
-                    link.toString(), // Evidence
-                    0, // CWE Id
-                    0, // WASC Id
-                    msg);
-
-            parent.raiseAlert(id, alert);
-            return true;
         }
-        return false;
+        return true;
+    }
+
+    private void raiseAlert(Element link, HttpMessage msg, int id) {
+        // Its bad
+        Alert alert =
+                new Alert(getPluginId(), Alert.RISK_MEDIUM, Alert.CONFIDENCE_MEDIUM, getName());
+        alert.setDetail(
+                getDescription(),
+                msg.getRequestHeader().getURI().toString(),
+                "", // Param
+                "", // Attack
+                "", // Other info
+                getSolution(),
+                getReference(),
+                link.toString(), // Evidence
+                0, // CWE Id
+                0, // WASC Id
+                msg);
+
+        parent.raiseAlert(id, alert);
     }
 
     @Override
@@ -155,7 +159,7 @@ public class LinkTargetScanner extends PluginPassiveScanner {
             return;
         }
         // Check to see if the configs have changed
-        trustedDomains.checkIgnoreList(getConfig().getString(TrustedDomains.TRUSTED_DOMAINS_PROPERTY, ""));
+        trustedDomains.update(getConfig().getString(TrustedDomains.TRUSTED_DOMAINS_PROPERTY, ""));
 
         String host = msg.getRequestHeader().getHostName();
         List<Context> contextList =
@@ -163,18 +167,14 @@ public class LinkTargetScanner extends PluginPassiveScanner {
                         .getSession()
                         .getContextsForUrl(msg.getRequestHeader().getURI().toString());
 
-        for (Element link : source.getAllElements(HTMLElementName.A)) {
-            if (this.isLinkFromOtherDomain(host, link.getAttributeValue("href"), contextList)) {
-                if (this.checkElement(link, msg, id)) {
-                    return;
-                }
-            }
-        }
-        for (Element link : source.getAllElements(HTMLElementName.AREA)) {
-            if (this.isLinkFromOtherDomain(host, link.getAttributeValue("href"), contextList)) {
-                if (this.checkElement(link, msg, id)) {
-                    return;
-                }
+        List<Element> elements = new ArrayList<>(source.getAllElements(HTMLElementName.A));
+        elements.addAll(source.getAllElements(HTMLElementName.AREA));
+        // TODO Replace it with filter/findFirst?
+        for (Element link : elements) {
+            if (isLinkFromOtherDomain(host, link.getAttributeValue("href"), contextList)
+                    && checkElement(link, msg, id)) {
+                raiseAlert(link, msg, id);
+                return;
             }
         }
     }
