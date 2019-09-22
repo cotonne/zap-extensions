@@ -53,7 +53,7 @@ public class SubResourceIntegrityAttributeScannerTest
         rule.scanHttpResponseReceive(msg, -1, createSource(msg));
 
         // Then
-        assertThat(alertsRaised.size(), equalTo(0));
+        assertThat(alertsRaised, hasSize(0));
     }
 
     @Test
@@ -71,7 +71,7 @@ public class SubResourceIntegrityAttributeScannerTest
         rule.scanHttpResponseReceive(msg, -1, createSource(msg));
 
         // Then
-        assertThat(alertsRaised.size(), equalTo(0));
+        assertThat(alertsRaised, hasSize(0));
     }
 
     @Test
@@ -137,7 +137,7 @@ public class SubResourceIntegrityAttributeScannerTest
         HttpMessage msg =
                 buildMessage(
                         "<html><head>"
-                                + "<script src=\"https://example.com/v1.0/include.js\"></script>"
+                                + "<script src=\"http://example.com/v1.0/include.js\"></script>"
                                 + "<link href=\"http://example.com/v1.0/style.css\"></script>"
                                 + "</head><body></body></html>");
 
@@ -145,7 +145,25 @@ public class SubResourceIntegrityAttributeScannerTest
         rule.scanHttpResponseReceive(msg, -1, createSource(msg));
 
         // Then
-        assertThat(alertsRaised.size(), equalTo(0));
+        assertThat(alertsRaised, hasSize(0));
+    }
+
+    @Test
+    public void shouldRaiseAnAlertGivenSchemeIsDifferentFromOrigin()
+            throws HttpMalformedHeaderException {
+        // Given
+        HttpMessage msg =
+                buildMessage(
+                        "<html><head>"
+                                + "<script src=\"https://example.com/v1.0/include.js\"></script>"
+                                + "</head><body></body></html>");
+
+        // When
+        rule.scanHttpResponseReceive(msg, -1, createSource(msg));
+
+        // Then
+        assertThat(alertsRaised.get(0).getEvidence(),
+                equalTo("<script src=\"https://example.com/v1.0/include.js\"></script>"));
     }
 
     @Test
@@ -162,7 +180,7 @@ public class SubResourceIntegrityAttributeScannerTest
         rule.scanHttpResponseReceive(msg, -1, createSource(msg));
 
         // Then
-        assertThat(alertsRaised.size(), equalTo(1));
+        assertThat(alertsRaised, hasSize(1));
     }
 
     @Test
@@ -178,7 +196,7 @@ public class SubResourceIntegrityAttributeScannerTest
         rule.scanHttpResponseReceive(msg, -1, createSource(msg));
 
         // Then
-        assertThat(alertsRaised.size(), equalTo(1));
+        assertThat(alertsRaised, hasSize(1));
     }
 
     private static HttpMessage buildMessage(String body) throws HttpMalformedHeaderException {
