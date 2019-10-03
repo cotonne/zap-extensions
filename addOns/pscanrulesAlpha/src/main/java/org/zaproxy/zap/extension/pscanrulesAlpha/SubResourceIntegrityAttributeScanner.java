@@ -91,11 +91,7 @@ public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
     @Override
     public void scanHttpResponseReceive(HttpMessage msg, int id, Source source) {
         trustedDomains.update(getConfig().getString(TrustedDomains.TRUSTED_DOMAINS_PROPERTY, ""));
-        // Would be nice to add origin as a trusted domain
-        // However, seems complicated with the regex
-        // Main problem is "ressources are trusted by regex / trusted domains" and "ressource are
-        // trusted by SOP / origin"
-        trustedDomains.add(format(msg.getRequestHeader().getURI()));
+        trustedDomains.add(new SameOriginPolicyTrust(msg.getRequestHeader().getURI()));
 
         List<Element> sourceElements = source.getAllElements();
         sourceElements.stream()
@@ -126,25 +122,12 @@ public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
                         });
     }
 
-    public String format(URI originUri) {
-        try {
-            return originUri.getScheme()
-                    + "://"
-                    + originUri.getAuthority()
-                    + ":"
-                    + originUri.getPort()
-                    + "/.*";
-        } catch (URIException e) {
-            return "";
-        }
-    }
-
     private static Predicate<Element> isNotTrusted(TrustedDomains trustedDomains) {
         return element -> {
             Optional<URI> maybeRessourceUri = SupportedElements.getHost(element);
             return element.getAttributeValue("integrity") == null
                     && !maybeRessourceUri
-                            .map(ressourceUri -> trustedDomains.isIncluded(ressourceUri.toString()))
+                            .map(resourceUri -> trustedDomains.isIncluded(resourceUri.toString()))
                             .orElse(false);
         };
     }

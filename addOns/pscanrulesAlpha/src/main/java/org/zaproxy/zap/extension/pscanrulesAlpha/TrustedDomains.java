@@ -33,12 +33,12 @@ public class TrustedDomains {
     // available.
     public static final String TRUSTED_DOMAINS_PROPERTY = "rules.domains.trusted";
     private String trustedConfig = "";
-    private List<Pattern> trustedDomainRegexesPatterns = new ArrayList<>();
+    private List<Trust> trustedDomainRegexesPatterns = new ArrayList<>();
 
     boolean isIncluded(String link) {
         // check the trusted domains
         return trustedDomainRegexesPatterns.stream()
-                .anyMatch(regex -> regex.matcher(link).matches());
+                .anyMatch(regex -> regex.isTrusted(link));
     }
 
     void update(String trustedConf) {
@@ -60,10 +60,14 @@ public class TrustedDomains {
         String regexTrim = regex.trim();
         if (!regexTrim.isEmpty()) {
             try {
-                trustedDomainRegexesPatterns.add(Pattern.compile(regexTrim));
+                trustedDomainRegexesPatterns.add(new RegexTrust(regexTrim));
             } catch (Exception e) {
                 LOG.warn("Invalid regex in rule " + TRUSTED_DOMAINS_PROPERTY + ": " + regex, e);
             }
         }
+    }
+
+    public void add(Trust trust) {
+        trustedDomainRegexesPatterns.add(trust);
     }
 }

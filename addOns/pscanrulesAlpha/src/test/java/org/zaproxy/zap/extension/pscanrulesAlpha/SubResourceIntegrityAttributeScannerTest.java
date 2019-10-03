@@ -129,8 +129,7 @@ public class SubResourceIntegrityAttributeScannerTest
         assertThat(alertsRaised, hasSize(0));
     }
 
-    // TODO doesn't work due to definition of trusted domain
-    @Test
+    @T  est
     public void shouldNotRaiseAlertGivenElementIsServedByCurrentDomain()
             throws HttpMalformedHeaderException {
         // Given
