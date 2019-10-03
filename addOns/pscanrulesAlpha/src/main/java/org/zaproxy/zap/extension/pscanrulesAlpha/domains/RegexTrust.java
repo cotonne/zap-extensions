@@ -1,4 +1,4 @@
-package org.zaproxy.zap.extension.pscanrulesAlpha;
+package org.zaproxy.zap.extension.pscanrulesAlpha.domains;
 
 import java.util.regex.Pattern;
 

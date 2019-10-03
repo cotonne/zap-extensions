@@ -1,7 +1,8 @@
-package org.zaproxy.zap.extension.pscanrulesAlpha;
+package org.zaproxy.zap.extension.pscanrulesAlpha.domains;
 
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
+import org.zaproxy.zap.extension.pscanrulesAlpha.domains.Trust;
 
 public class SameOriginPolicyTrust implements Trust {
   private final URI origin;

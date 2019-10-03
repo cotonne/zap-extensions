@@ -26,6 +26,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.parosproxy.paros.network.HttpMalformedHeaderException;
 import org.parosproxy.paros.network.HttpMessage;
+import org.zaproxy.zap.extension.pscanrulesAlpha.domains.TrustedDomains;
 import org.zaproxy.zap.utils.ZapXmlConfiguration;
 
 public class SubResourceIntegrityAttributeScannerTest

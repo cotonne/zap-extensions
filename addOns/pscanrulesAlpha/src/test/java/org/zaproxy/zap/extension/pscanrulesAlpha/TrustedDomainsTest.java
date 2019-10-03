@@ -23,6 +23,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.zaproxy.zap.extension.pscanrulesAlpha.domains.TrustedDomains;
 
 public class TrustedDomainsTest {
     private TrustedDomains trustedDomains;

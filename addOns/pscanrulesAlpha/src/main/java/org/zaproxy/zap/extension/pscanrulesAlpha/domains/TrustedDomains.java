@@ -17,11 +17,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.zaproxy.zap.extension.pscanrulesAlpha;
+package org.zaproxy.zap.extension.pscanrulesAlpha.domains;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
+
 import org.apache.log4j.Logger;
 
 // TODO Move it to an "util" (find a better name) package?
@@ -35,20 +35,18 @@ public class TrustedDomains {
     private String trustedConfig = "";
     private List<Trust> trustedDomainRegexesPatterns = new ArrayList<>();
 
-    boolean isIncluded(String link) {
+    public boolean isIncluded(String link) {
         // check the trusted domains
         return trustedDomainRegexesPatterns.stream()
                 .anyMatch(regex -> regex.isTrusted(link));
     }
 
-    void update(String trustedConf) {
+    public void update(String trustedConf) {
         // TODO use hashCode?
         if (trustedConf.equals(this.trustedConfig)) {
             return;
         }
-        // Its changed
-        // TODO use trustedDomainRegexesPatterns = new ArrayList<>() vs
-        // trustedDomainRegexesPatterns.clear()?
+
         trustedDomainRegexesPatterns.clear();
         this.trustedConfig = trustedConf;
         for (String regex : trustedConf.split(",")) {
@@ -56,7 +54,7 @@ public class TrustedDomains {
         }
     }
 
-    void add(String regex) {
+    private void add(String regex) {
         String regexTrim = regex.trim();
         if (!regexTrim.isEmpty()) {
             try {

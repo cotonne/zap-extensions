@@ -34,6 +34,8 @@ import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.network.HttpMessage;
 import org.zaproxy.zap.extension.pscan.PassiveScanThread;
 import org.zaproxy.zap.extension.pscan.PluginPassiveScanner;
+import org.zaproxy.zap.extension.pscanrulesAlpha.domains.SameOriginPolicyTrust;
+import org.zaproxy.zap.extension.pscanrulesAlpha.domains.TrustedDomains;
 
 /** Detect missing attribute integrity in supported elements */
 public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
