@@ -70,19 +70,4 @@ public class TrustedDomainsTest {
         // Then
         assertFalse(included);
     }
-
-    @Test
-    public void shouldUpdateTrustedDomains() {
-        // Given
-        trustedDomains.update("https://www.example2.com/.*");
-        trustedDomains.update("https://www.example3.com/.*");
-
-        // When
-        boolean included = trustedDomains.isIncluded("https://www.example3.com/page1");
-        boolean notIncluded = trustedDomains.isIncluded("https://www.example2.com/page1");
-
-        // Then
-        assertTrue(included);
-        assertFalse(notIncluded);
-    }
 }

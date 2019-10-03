@@ -126,9 +126,9 @@ public class SubResourceIntegrityAttributeScanner extends PluginPassiveScanner {
 
     private static Predicate<Element> isNotTrusted(TrustedDomains trustedDomains) {
         return element -> {
-            Optional<URI> maybeRessourceUri = SupportedElements.getHost(element);
+            Optional<URI> maybeResourceUri = SupportedElements.getHost(element);
             return element.getAttributeValue("integrity") == null
-                    && !maybeRessourceUri
+                    && !maybeResourceUri
                             .map(resourceUri -> trustedDomains.isIncluded(resourceUri.toString()))
                             .orElse(false);
         };
