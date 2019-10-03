@@ -19,10 +19,11 @@
  */
 package org.zaproxy.zap.extension.pscanrulesAlpha.domains;
 
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TrustedDomainsTest {
     private TrustedDomains trustedDomains;
@@ -35,7 +36,6 @@ public class TrustedDomainsTest {
     @Test
     public void shouldBeIncludedForPath() {
         // Given
-        TrustedDomains trustedDomains = new TrustedDomains();
         trustedDomains.update("https://www.example2.com/.*");
 
         // When
@@ -48,7 +48,6 @@ public class TrustedDomainsTest {
     @Test
     public void shouldNotBeIncludedForDifferentDomain() {
         // Given
-        TrustedDomains trustedDomains = new TrustedDomains();
         trustedDomains.update("https://www.example2.com/.*");
 
         // When
@@ -61,7 +60,6 @@ public class TrustedDomainsTest {
     @Test
     public void shouldNotBeIncludedForAnInvalidRegex() {
         // Given
-        TrustedDomains trustedDomains = new TrustedDomains();
         trustedDomains.update("[");
 
         // When
