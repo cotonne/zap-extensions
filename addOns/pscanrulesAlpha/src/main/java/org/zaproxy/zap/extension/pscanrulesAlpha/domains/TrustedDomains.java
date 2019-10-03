@@ -21,11 +21,8 @@ package org.zaproxy.zap.extension.pscanrulesAlpha.domains;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 
-// TODO Move it to an "util" (find a better name) package?
-// TODO Should be immutable?
 public class TrustedDomains {
     private static final Logger LOG = Logger.getLogger(TrustedDomains.class);
 
@@ -37,12 +34,10 @@ public class TrustedDomains {
 
     public boolean isIncluded(String link) {
         // check the trusted domains
-        return trustedDomainRegexesPatterns.stream()
-                .anyMatch(regex -> regex.isTrusted(link));
+        return trustedDomainRegexesPatterns.stream().anyMatch(regex -> regex.isTrusted(link));
     }
 
     public void update(String trustedConf) {
-        // TODO use hashCode?
         if (trustedConf.equals(this.trustedConfig)) {
             return;
         }
@@ -58,7 +53,7 @@ public class TrustedDomains {
         String regexTrim = regex.trim();
         if (!regexTrim.isEmpty()) {
             try {
-                trustedDomainRegexesPatterns.add(new RegexTrust(regexTrim));
+                add(new RegexTrust(regexTrim));
             } catch (Exception e) {
                 LOG.warn("Invalid regex in rule " + TRUSTED_DOMAINS_PROPERTY + ": " + regex, e);
             }

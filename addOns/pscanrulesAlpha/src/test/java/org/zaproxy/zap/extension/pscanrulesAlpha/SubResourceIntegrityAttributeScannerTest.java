@@ -130,7 +130,7 @@ public class SubResourceIntegrityAttributeScannerTest
         assertThat(alertsRaised, hasSize(0));
     }
 
-    @T  est
+    @Test
     public void shouldNotRaiseAlertGivenElementIsServedByCurrentDomain()
             throws HttpMalformedHeaderException {
         // Given

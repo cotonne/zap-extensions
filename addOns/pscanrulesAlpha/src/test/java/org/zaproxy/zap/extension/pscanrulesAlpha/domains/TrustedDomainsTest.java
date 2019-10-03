@@ -17,23 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.zaproxy.zap.extension.pscanrulesAlpha;
+package org.zaproxy.zap.extension.pscanrulesAlpha.domains;
 
 import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.zaproxy.zap.extension.pscanrulesAlpha.domains.TrustedDomains;
 
 public class TrustedDomainsTest {
     private TrustedDomains trustedDomains;
-
-    // TODO Should work?
-    // Port: http://domain/.* http://domain:80/path
-    // Port: http://domain:80/.* http://domain/path
-    // Sub-domain: http://.*\.domain/.* http://sub.domain/path
-    // Default : http://domain/.* //domain/path
-    // With ip: http://127.0.0.1/.* http://0x7f000001/path
 
     @Before
     public void setUp() {
