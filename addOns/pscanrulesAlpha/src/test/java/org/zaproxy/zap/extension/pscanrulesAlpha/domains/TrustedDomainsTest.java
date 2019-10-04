@@ -19,11 +19,11 @@
  */
 package org.zaproxy.zap.extension.pscanrulesAlpha.domains;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
 
 public class TrustedDomainsTest {
     private TrustedDomains trustedDomains;
